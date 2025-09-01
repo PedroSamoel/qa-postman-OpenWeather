@@ -181,13 +181,113 @@
 		},
 		{
 			"name": "Previsão Diária",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Captura a resposta JSON e converte em objeto JS\r",
+							"const jsonDataBase = pm.response.json();\r",
+							"// Extrai apenas as propriedades de previsão diária\r",
+							"const dataDaily = jsonDataBase.daily;\r",
+							"\r",
+							"// ✅ Test 1: Garante que a previsão diária existe e não está vazia\r",
+							"pm.test(\"API retornou dados de previsão diária\", () => {\r",
+							"    pm.expect(dataDaily.length).to.be.above(0);\r",
+							"});\r",
+							"\r",
+							"// ✅ Test2: Confere se propriedade daily possui 'dt' e 'temp' definidos\r",
+							"pm.test(\"Primeiro dia contém capos 'dt' e 'temp'\", () => {\r",
+							"    pm.expect(dataDaily[0]).to.have.property(\"dt\")\r",
+							"    pm.expect(dataDaily[0]).to.have.property(\"temp\")\r",
+							"    pm.expect(dataDaily[0]).to.have.property(\"humidity\")\r",
+							"    pm.expect(dataDaily[0]).to.have.property(\"pressure\")\r",
+							"    pm.expect(dataDaily[0]).to.have.property(\"clouds\")\r",
+							"});\r",
+							"\r",
+							"// ✅ Test3: Verifica se a temperatura mínima e máxima estão presentes\r",
+							"pm.test(\"Verifica se existem temperaturas minimas e máximas\", () => {      \r",
+							"    pm.expect(dataDaily[0].temp).to.have.property(\"min\")\r",
+							"    pm.expect(dataDaily[0].temp).to.have.property(\"max\")\r",
+							"});\r",
+							"\r",
+							"// ✅ Test4: Verifica se min e max sao valores numéricos\r",
+							"pm.test(\"Min e mas são valores numéricos\", () => {\r",
+							"    pm.expect(dataDaily[0].temp.min).to.be.a(\"number\")\r",
+							"    pm.expect(dataDaily[0].temp.max).to.be.a(\"number\")\r",
+							"})\r",
+							"\r",
+							"// ✅ Test5: Confere se há descrição de clima\r",
+							"pm.test(\"Verifica se há descrição de clima\", () => {\r",
+							"    pm.expect(dataDaily[0].weather[0]).to.have.property(\"description\")\r",
+							"});\r",
+							"\r",
+							"// ✅ Teste 6: Confere campos adicionais (umidade, pressão, nuvens)\r",
+							"pm.test(\"Contém dados adicionais (umidade, pressão, nuvens)\", () => {\r",
+							"    pm.expect(dataDaily[0]).to.have.property(\"humidity\");\r",
+							"    pm.expect(dataDaily[0]).to.have.property(\"pressure\");\r",
+							"    pm.expect(dataDaily[0]).to.have.property(\"clouds\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
 			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "{{vault:openweather-api:value}}",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "appid",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "query",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}",
+					"raw": "{{base_url}}/data/3.0/onecall?lat={{lat}}&lon={{lon}}&appid={{apiKey}}&units={{units}}&lang={{lang}}",
 					"host": [
 						"{{base_url}}"
+					],
+					"path": [
+						"data",
+						"3.0",
+						"onecall"
+					],
+					"query": [
+						{
+							"key": "lat",
+							"value": "{{lat}}"
+						},
+						{
+							"key": "lon",
+							"value": "{{lon}}"
+						},
+						{
+							"key": "appid",
+							"value": "{{apiKey}}"
+						},
+						{
+							"key": "units",
+							"value": "{{units}}"
+						},
+						{
+							"key": "lang",
+							"value": "{{lang}}"
+						}
 					]
 				}
 			},
@@ -195,13 +295,91 @@
 		},
 		{
 			"name": "Alertas Meteorológicos",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Captura a resposta da API já convertida em objeto JS\r",
+							"const jsonDataBase = pm.response.json();\r",
+							"\r",
+							"// Extrai a parte de alertas, se existir\r",
+							"const dataAlerts = jsonDataBase.alerts;\r",
+							"\r",
+							"// ✅ Teste 1: Verifica se 'alerts' existe OU não está definido\r",
+							"pm.test(\"Campo 'alerts' pode existir ou estar ausente (dependendo da região)\", () => {\r",
+							"    pm.expect(jsonDataBase.hasOwnProperty(\"alerts\") || jsonDataBase.alerts === undefined).to.be.true;\r",
+							"});\r",
+							"\r",
+							"// ✅ Se houver alertas, validar conteúdo\r",
+							"if (dataAlerts && dataAlerts.length > 0) {\r",
+							"\r",
+							"    // Teste 2: Garante que a API retornou pelo menos 1 alerta\r",
+							"    pm.test(\"API retornou pelo menos 1 alerta meteorológico\", () => {\r",
+							"        pm.expect(dataAlerts.length).to.be.above(0);\r",
+							"    });\r",
+							"\r",
+							"    // Teste 3: Confere se o primeiro alerta tem o campo 'event'\r",
+							"    pm.test(\"Primeiro alerta contém o campo 'event' (nome do fenômeno)\", () => {\r",
+							"        pm.expect(dataAlerts[0]).to.have.property(\"event\");\r",
+							"    });\r",
+							"\r",
+							"    // Teste 4: Confere se o primeiro alerta tem o campo 'description'\r",
+							"    pm.test(\"Primeiro alerta contém o campo 'description' (detalhes do fenômeno)\", () => {\r",
+							"        pm.expect(dataAlerts[0]).to.have.property(\"description\");\r",
+							"    });\r",
+							"\r",
+							"    // Teste 5: Confere se o primeiro alerta possui datas de início e fim\r",
+							"    pm.test(\"Primeiro alerta contém as propriedades 'start' e 'end' (período de vigência)\", () => {\r",
+							"        pm.expect(dataAlerts[0]).to.have.property(\"start\");\r",
+							"        pm.expect(dataAlerts[0]).to.have.property(\"end\");\r",
+							"    });\r",
+							"\r",
+							"} else {\r",
+							"    // ✅ Se não houver alertas, apenas loga no console\r",
+							"    console.log(\"Nenhum alerta meteorológico ativo no momento para essa região.\");\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}",
+					"raw": "{{base_url}}/data/3.0/onecall?lat={{lat}}&lon={{lon}}&appid={{apiKey}}&units={{units}}&lang={{lang}}",
 					"host": [
 						"{{base_url}}"
+					],
+					"path": [
+						"data",
+						"3.0",
+						"onecall"
+					],
+					"query": [
+						{
+							"key": "lat",
+							"value": "{{lat}}"
+						},
+						{
+							"key": "lon",
+							"value": "{{lon}}"
+						},
+						{
+							"key": "appid",
+							"value": "{{apiKey}}"
+						},
+						{
+							"key": "units",
+							"value": "{{units}}"
+						},
+						{
+							"key": "lang",
+							"value": "{{lang}}"
+						}
 					]
 				}
 			},

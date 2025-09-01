@@ -8,6 +8,10 @@
 	},
 	"item": [
 		{
+			"name": "Negativos",
+			"item": []
+		},
+		{
 			"name": "Clima Atual",
 			"event": [
 				{
@@ -386,14 +390,81 @@
 			"response": []
 		},
 		{
-			"name": "Casos Negativos",
+			"name": "Coordenadas invalidas",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// ✅ Teste: Chamada com coordenadas inválidas\r",
+							"pm.test(\"Erro 400 - Coordenadas inválidas\", () => {\r",
+							"    pm.response.to.have.status(400);\r",
+							"\r",
+							"    const respostaErro = pm.response.json();\r",
+							"    pm.expect(respostaErro).to.have.property(\"message\");\r",
+							"    console.log(\"Mensagem de erro retornada:\", respostaErro.message);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
 			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "{{vault:openweather-api:value}}",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "appid",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "query",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}",
+					"raw": "{{base_url}}/data/3.0/onecall?lat={{invalidLat}}&lon={{invalidLon}}&appid={{apiKey}}&units={{units}}&lang={{lang}}",
 					"host": [
 						"{{base_url}}"
+					],
+					"path": [
+						"data",
+						"3.0",
+						"onecall"
+					],
+					"query": [
+						{
+							"key": "lat",
+							"value": "{{invalidLat}}"
+						},
+						{
+							"key": "lon",
+							"value": "{{invalidLon}}"
+						},
+						{
+							"key": "appid",
+							"value": "{{apiKey}}"
+						},
+						{
+							"key": "units",
+							"value": "{{units}}"
+						},
+						{
+							"key": "lang",
+							"value": "{{lang}}"
+						}
 					]
 				}
 			},

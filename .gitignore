@@ -1,0 +1,11 @@
+# Ignorar environments privados
+environments/*Privado.postman_environment.json
+
+# Ignorar relatórios do Newman
+reports/*
+*.html
+*.json
+
+# Manter apenas os arquivos importantes
+!collections/QA Portfolio – OpenWeather v3.0.postman_collection.json
+!environments/OpenWeather v3.0 (Publico).postman_environment.json
